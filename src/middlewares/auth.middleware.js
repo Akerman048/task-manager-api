@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { findUserById } from "../repositories/users.repository.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
@@ -12,10 +13,18 @@ export const authMiddleware = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    const decoder = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+
+    const user = await findUserById(decoded.userId);
+
+    if (!user) {
+      const error = new Error("User no longer exists");
+      error.statusCode = 401;
+      throw error;
+    }
 
     req.user = {
-      id: decoder.userId,
+      id: decoded.userId,
     };
 
     next();

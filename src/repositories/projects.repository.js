@@ -13,3 +13,21 @@ export const findProjectsRepository = async (userId) => {
 
   return result.rows;
 };
+
+/* CREATE PROJECT */
+export const createProjectRepository = async ({
+  userId,
+  title,
+  description,
+}) => {
+  const result = await pool.query(
+    `
+    INSERT INTO projects (user_id,title,description)
+    VALUES ($1,$2,$3)
+    RETURNING *
+    `,
+    [userId, title, description],
+  );
+
+  return result.rows[0];
+};
