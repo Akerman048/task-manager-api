@@ -5,6 +5,7 @@ import { userRegisterSchema, userLoginSchema } from "../schemas/auth.schema.js";
 import {
   registerUserRepository,
   findUserByEmail,
+  findUserById,
 } from "../repositories/users.repository.js";
 
 /* REGISTER USER */
@@ -81,4 +82,17 @@ export const loginUserService = async (data) => {
     },
     accessToken,
   };
+};
+
+/* GET USER BY ID */
+export const getUserByIdService = async (id) => {
+  const user = await findUserById(id);
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return user;
 };
