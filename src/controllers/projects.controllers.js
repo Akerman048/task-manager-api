@@ -1,6 +1,7 @@
 import {
   getProjectsService,
   createProjectService,
+  getProjectByIdService,
 } from "../services/projects.service.js";
 
 /* GET PROJECTS */
@@ -46,7 +47,27 @@ export const createProject = async (req, res, next) => {
   }
 };
 
-export const getProjectById = async (req, res, next) => {};
+export const getProjectById = async (req, res, next) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.user.id;
+
+    if (!userId) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const project = await getProjectByIdService(userId, projectId);
+
+    res.status(200).json({
+      success: true,
+      data: project,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const updateProject = async (req, res, next) => {};
 

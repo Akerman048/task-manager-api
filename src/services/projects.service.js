@@ -1,11 +1,9 @@
 import {
   findProjectsRepository,
   createProjectRepository,
+  findProjectByIdRepository,
 } from "../repositories/projects.repository.js";
-import {
-  findUserByEmail,
-  findUserById,
-} from "../repositories/users.repository.js";
+
 import { createProjectSchema } from "../schemas/projects.schema.js";
 
 /* GET PROJECTS */
@@ -40,6 +38,31 @@ export const createProjectService = async (userId, data) => {
   const { title, description } = validation.data;
 
   const project = await createProjectRepository({ userId, title, description });
+
+  return project;
+};
+
+/* GET PROJECT BY ID */
+export const getProjectByIdService = async (userId, projectId) => {
+  if (!userId) {
+    const error = new Error("Unauthorized");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  if (!projectId || Number.isNaN(Number(projectId))) {
+    const error = new Error("Invalid project id");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const project = await findProjectByIdRepository({ userId, projectId });
+
+  if (!project) {
+    const error = new Error("Project not found");
+    error.statusCode = 404;
+    throw error;
+  }
 
   return project;
 };

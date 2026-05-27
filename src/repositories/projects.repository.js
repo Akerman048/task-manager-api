@@ -31,3 +31,16 @@ export const createProjectRepository = async ({
 
   return result.rows[0];
 };
+
+/* FIND PROJECT BY ID */
+export const findProjectByIdRepository = async ({ userId, projectId }) => {
+  const result = await pool.query(
+    `
+    SELECT * FROM projects
+    WHERE user_id = $1 AND id = $2
+    `,
+    [userId, projectId],
+  );
+
+  return result.rows[0];
+};
