@@ -44,3 +44,25 @@ export const findProjectByIdRepository = async ({ userId, projectId }) => {
 
   return result.rows[0];
 };
+
+/* UPDATE PROJECT */
+export const updateProjectRepository = async ({
+  userId,
+  projectId,
+  title,
+  description,
+}) => {
+  const result = await pool.query(
+    `
+    UPDATE projects
+    SET
+      title = COALESCE($1,title),
+      description = COALESCE($2,description)
+    WHERE id = $3 AND user_id = $4
+    RETURNING *
+    `,
+    [title, description, projectId, userId],
+  );
+
+  return result.rows[0];
+};

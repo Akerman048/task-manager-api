@@ -2,6 +2,7 @@ import {
   getProjectsService,
   createProjectService,
   getProjectByIdService,
+  updateProjectService,
 } from "../services/projects.service.js";
 
 /* GET PROJECTS */
@@ -47,6 +48,7 @@ export const createProject = async (req, res, next) => {
   }
 };
 
+/* GET PROJECT BY ID */
 export const getProjectById = async (req, res, next) => {
   try {
     const projectId = req.params.id;
@@ -69,6 +71,31 @@ export const getProjectById = async (req, res, next) => {
   }
 };
 
-export const updateProject = async (req, res, next) => {};
+/* UPDATE PROJECT */
+export const updateProject = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const projectId = req.params.id;
+
+    if (!userId) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const updatedProject = await updateProjectService(
+      userId,
+      projectId,
+      req.body,
+    );
+
+    res.status(200).json({
+      success: true,
+      data: updatedProject,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const deleteProject = async (req, res, next) => {};

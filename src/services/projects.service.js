@@ -2,9 +2,13 @@ import {
   findProjectsRepository,
   createProjectRepository,
   findProjectByIdRepository,
+  updateProjectRepository,
 } from "../repositories/projects.repository.js";
 
-import { createProjectSchema } from "../schemas/projects.schema.js";
+import {
+  createProjectSchema,
+  updateProjectSchema,
+} from "../schemas/projects.schema.js";
 
 /* GET PROJECTS */
 export const getProjectsService = async (userId) => {
@@ -65,4 +69,31 @@ export const getProjectByIdService = async (userId, projectId) => {
   }
 
   return project;
+};
+
+/* UPDATE PROJECT */
+export const updateProjectService = async (userId, projectId, data) => {
+  const validation = updateProjectSchema.safeParse(data);
+
+  if (!validation.success) {
+    const error = new Error("Validation error");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const project = await findProjectByIdRepository({ userId, projectId });
+
+  if (!project) {
+    const error = new Error("Project not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const updatedProject = await updateProjectRepository({
+    userId,
+    projectId,
+    ...validation.data,
+  });
+
+  return updatedProject;
 };
