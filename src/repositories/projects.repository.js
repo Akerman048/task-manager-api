@@ -66,3 +66,17 @@ export const updateProjectRepository = async ({
 
   return result.rows[0];
 };
+
+/* DELETE PROJECT */
+export const deleteProjectRepository = async ({ userId, projectId }) => {
+  const result = await pool.query(
+    `
+    DELETE FROM projects
+    WHERE id = $1 AND user_id = $2
+    RETURNING *
+    `,
+    [projectId, userId],
+  );
+
+  return result.rows[0];
+};

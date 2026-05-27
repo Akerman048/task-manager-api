@@ -3,6 +3,7 @@ import {
   createProjectService,
   getProjectByIdService,
   updateProjectService,
+  deleteProjectService,
 } from "../services/projects.service.js";
 
 /* GET PROJECTS */
@@ -98,4 +99,19 @@ export const updateProject = async (req, res, next) => {
   }
 };
 
-export const deleteProject = async (req, res, next) => {};
+/* DELETE PROJECT */
+export const deleteProject = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const projectId = req.params.id;
+
+    const deletedProject = await deleteProjectService(userId, projectId);
+
+    res.status(200).json({
+      success: true,
+      data: deletedProject,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

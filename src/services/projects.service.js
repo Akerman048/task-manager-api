@@ -3,6 +3,7 @@ import {
   createProjectRepository,
   findProjectByIdRepository,
   updateProjectRepository,
+  deleteProjectRepository,
 } from "../repositories/projects.repository.js";
 
 import {
@@ -96,4 +97,29 @@ export const updateProjectService = async (userId, projectId, data) => {
   });
 
   return updatedProject;
+};
+
+/* DELETE PROJECT */
+export const deleteProjectService = async (userId, projectId) => {
+  if (!userId) {
+    const error = new Error("Unauthorized");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  if (!projectId || Number.isNaN(Number(projectId))) {
+    const error = new Error("Invalid project id");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const deletedProject = await deleteProjectRepository({ userId, projectId });
+
+  if (!deletedProject) {
+    const error = new Error("Project not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return deletedProject;
 };
