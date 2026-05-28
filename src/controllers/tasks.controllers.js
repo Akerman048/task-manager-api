@@ -5,6 +5,7 @@ import {
   getTasksService,
   updateTaskService,
 } from "../services/tasks.service.js";
+import { AppError } from "../utils/AppError.js";
 
 /* GET TASKS */
 export const getTasks = async (req, res, next) => {
@@ -13,15 +14,11 @@ export const getTasks = async (req, res, next) => {
     const projectId = req.params.projectId;
 
     if (!userId) {
-      const error = new Error("Unauthorized");
-      error.statusCode = 401;
-      throw error;
+      throw new AppError("Unauthorized", 401);
     }
 
     if (!projectId || Number.isNaN(Number(projectId))) {
-      const error = new Error("Invalid project id");
-      error.statusCode = 400;
-      throw error;
+      throw new AppError("Invalid project id", 400);
     }
 
     const tasks = await getTasksService(userId, projectId);
@@ -42,15 +39,11 @@ export const createTask = async (req, res, next) => {
     const projectId = req.params.projectId;
 
     if (!userId) {
-      const error = new Error("Unauthorized");
-      error.statusCode = 401;
-      throw error;
+      throw new AppError("Unauthorized", 401);
     }
 
     if (!projectId || Number.isNaN(Number(projectId))) {
-      const error = new Error("Invalid project id");
-      error.statusCode = 400;
-      throw error;
+      throw new AppError("Invalid project id", 400);
     }
 
     const task = await createTaskService(userId, projectId, req.body);
@@ -72,21 +65,15 @@ export const getTask = async (req, res, next) => {
     const taskId = req.params.taskId;
 
     if (!userId) {
-      const error = new Error("Unauthorized");
-      error.statusCode = 401;
-      throw error;
+      throw new AppError("Unauthorized", 401);
     }
 
     if (!projectId || Number.isNaN(Number(projectId))) {
-      const error = new Error("Invalid project id");
-      error.statusCode = 400;
-      throw error;
+      throw new AppError("Invalid project id", 400);
     }
 
     if (!taskId || Number.isNaN(Number(taskId))) {
-      const error = new Error("Invalid task id");
-      error.statusCode = 400;
-      throw error;
+      throw new AppError("Invalid task id", 400);
     }
 
     const task = await getTaskService(userId, projectId, taskId);
@@ -105,21 +92,15 @@ export const updateTask = async (req, res, next) => {
     const taskId = req.params.taskId;
 
     if (!userId) {
-      const error = new Error("Unauthorized");
-      error.statusCode = 401;
-      throw error;
+      throw new AppError("Unauthorized", 401);
     }
 
     if (!projectId || Number.isNaN(Number(projectId))) {
-      const error = new Error("Invalid project id");
-      error.statusCode = 400;
-      throw error;
+      throw new AppError("Invalid project id", 400);
     }
 
     if (!taskId || Number.isNaN(Number(taskId))) {
-      const error = new Error("Invalid task id");
-      error.statusCode = 400;
-      throw error;
+      throw new AppError("Invalid task id", 400);
     }
 
     const updatedTask = await updateTaskService(
@@ -143,21 +124,15 @@ export const deleteTask = async (req, res, next) => {
     const taskId = req.params.taskId;
 
     if (!userId) {
-      const error = new Error("Unauthorized");
-      error.statusCode = 401;
-      throw error;
+      throw new AppError("Unauthorized", 401);
     }
 
     if (!projectId || Number.isNaN(Number(projectId))) {
-      const error = new Error("Invalid project id");
-      error.statusCode = 400;
-      throw error;
+      throw new AppError("Invalid project id", 400);
     }
 
     if (!taskId || Number.isNaN(Number(taskId))) {
-      const error = new Error("Invalid task id");
-      error.statusCode = 400;
-      throw error;
+      throw new AppError("Invalid task id", 400);
     }
 
     const deletedTask = await deleteTaskService(userId, projectId, taskId);

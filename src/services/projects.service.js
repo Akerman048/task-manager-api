@@ -11,12 +11,12 @@ import {
   updateProjectSchema,
 } from "../schemas/projects.schema.js";
 
+import { AppError } from "../utils/AppError.js";
+
 /* GET PROJECTS */
 export const getProjectsService = async (userId) => {
   if (!userId) {
-    const error = new Error("Unauthorized");
-    error.statusCode = 401;
-    throw error;
+    throw new AppError("Unauthorized", 401);
   }
 
   const projects = await findProjectsRepository(userId);
@@ -27,17 +27,13 @@ export const getProjectsService = async (userId) => {
 /* CREATE PROJECT */
 export const createProjectService = async (userId, data) => {
   if (!userId) {
-    const error = new Error("Unauthorized");
-    error.statusCode = 401;
-    throw error;
+    throw new AppError("Unauthorized", 401);
   }
 
   const validation = createProjectSchema.safeParse(data);
 
   if (!validation.success) {
-    const error = new Error("Validation error");
-    error.statusCode = 400;
-    throw error;
+    throw new AppError("Validation error", 400, validation.error.flatten());
   }
 
   const { title, description } = validation.data;
@@ -50,23 +46,17 @@ export const createProjectService = async (userId, data) => {
 /* GET PROJECT BY ID */
 export const getProjectByIdService = async (userId, projectId) => {
   if (!userId) {
-    const error = new Error("Unauthorized");
-    error.statusCode = 401;
-    throw error;
+    throw new AppError("Unauthorized", 401);
   }
 
   if (!projectId || Number.isNaN(Number(projectId))) {
-    const error = new Error("Invalid project id");
-    error.statusCode = 400;
-    throw error;
+    throw new AppError("Invalid project id", 400);
   }
 
   const project = await findProjectByIdRepository({ userId, projectId });
 
   if (!project) {
-    const error = new Error("Project not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("Project not found", 404);
   }
 
   return project;
@@ -74,20 +64,28 @@ export const getProjectByIdService = async (userId, projectId) => {
 
 /* UPDATE PROJECT */
 export const updateProjectService = async (userId, projectId, data) => {
+  if (!userId) {
+    throw new AppError("Unauthorized", 401);
+  }
+
+  if (!projectId || Number.isNaN(Number(projectId))) {
+    throw new AppError("Invalid project id", 400);
+  }
+
   const validation = updateProjectSchema.safeParse(data);
 
   if (!validation.success) {
-    const error = new Error("Validation error");
-    error.statusCode = 400;
-    throw error;
+    throw new AppError("Validation error", 400, validation.error.flatten());
+  }
+
+  if (Object.keys(validation.data).length === 0) {
+    throw new AppError("No fields to update", 400);
   }
 
   const project = await findProjectByIdRepository({ userId, projectId });
 
   if (!project) {
-    const error = new Error("Project not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("Project not found", 404);
   }
 
   const updatedProject = await updateProjectRepository({
@@ -102,23 +100,17 @@ export const updateProjectService = async (userId, projectId, data) => {
 /* DELETE PROJECT */
 export const deleteProjectService = async (userId, projectId) => {
   if (!userId) {
-    const error = new Error("Unauthorized");
-    error.statusCode = 401;
-    throw error;
+    throw new AppError("Unauthorized", 401);
   }
 
   if (!projectId || Number.isNaN(Number(projectId))) {
-    const error = new Error("Invalid project id");
-    error.statusCode = 400;
-    throw error;
+    throw new AppError("Invalid project id", 400);
   }
 
   const deletedProject = await deleteProjectRepository({ userId, projectId });
 
   if (!deletedProject) {
-    const error = new Error("Project not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("Project not found", 404);
   }
 
   return deletedProject;

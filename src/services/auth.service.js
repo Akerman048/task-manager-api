@@ -8,15 +8,14 @@ import {
   findUserById,
 } from "../repositories/users.repository.js";
 
+import { AppError } from "../utils/AppError.js";
+
 /* REGISTER USER */
 export const registerUserService = async (data) => {
   const validation = userRegisterSchema.safeParse(data);
 
   if (!validation.success) {
-    const error = new Error("Validation error");
-    error.statusCode = 400;
-    error.errors = validation.error.flatten();
-    throw error;
+    throw new AppError("Validation error", 400, validation.error.flatten());
   }
 
   const { name, email, password } = validation.data;
@@ -24,9 +23,7 @@ export const registerUserService = async (data) => {
   const existingUser = await findUserByEmail(email);
 
   if (existingUser) {
-    const error = new Error("Email already exists");
-    error.statusCode = 400;
-    throw error;
+    throw new AppError("Email already exists", 400);
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -41,10 +38,7 @@ export const loginUserService = async (data) => {
   const validation = userLoginSchema.safeParse(data);
 
   if (!validation.success) {
-    const error = new Error("Validation error");
-    error.statusCode = 400;
-    error.errors = validation.error.flatten();
-    throw error;
+    throw new AppError("Validation error", 400, validation.error.flatten());
   }
 
   const { email, password } = validation.data;
@@ -52,17 +46,13 @@ export const loginUserService = async (data) => {
   const user = await findUserByEmail(email);
 
   if (!user) {
-    const error = new Error("Invalid email or password");
-    error.statusCode = 401;
-    throw error;
+    throw new AppError("Invalid email or password", 401);
   }
 
   const isPasswordCorrect = await bcrypt.compare(password, user.password_hash);
 
   if (!isPasswordCorrect) {
-    const error = new Error("Invalid email or password");
-    error.statusCode = 401;
-    throw error;
+    throw new AppError("Invalid email or password", 401);
   }
 
   const accessToken = jwt.sign(
@@ -89,9 +79,7 @@ export const getUserByIdService = async (id) => {
   const user = await findUserById(id);
 
   if (!user) {
-    const error = new Error("User not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("User not found", 404);
   }
 
   return user;

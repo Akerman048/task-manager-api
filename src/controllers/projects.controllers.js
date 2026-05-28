@@ -5,15 +5,15 @@ import {
   updateProjectService,
   deleteProjectService,
 } from "../services/projects.service.js";
+import { AppError } from "../utils/AppError.js";
 
 /* GET PROJECTS */
 export const getProjects = async (req, res, next) => {
   try {
     const userId = req.user.id;
+
     if (!userId) {
-      const error = new Error("User not found");
-      error.statusCode = 401;
-      throw error;
+  throw new AppError("Unauthorized", 401);
     }
 
     const projects = await getProjectsService(userId);
@@ -33,9 +33,7 @@ export const createProject = async (req, res, next) => {
     const userId = req.user.id;
 
     if (!userId) {
-      const error = new Error("User not found");
-      error.statusCode = 404;
-      throw error;
+  throw new AppError("Unauthorized", 401);
     }
 
     const project = await createProjectService(userId, req.body);
@@ -56,9 +54,7 @@ export const getProjectById = async (req, res, next) => {
     const userId = req.user.id;
 
     if (!userId) {
-      const error = new Error("User not found");
-      error.statusCode = 404;
-      throw error;
+  throw new AppError("Unauthorized", 401);
     }
 
     const project = await getProjectByIdService(userId, projectId);
@@ -79,9 +75,7 @@ export const updateProject = async (req, res, next) => {
     const projectId = req.params.id;
 
     if (!userId) {
-      const error = new Error("User not found");
-      error.statusCode = 404;
-      throw error;
+  throw new AppError("Unauthorized", 401);
     }
 
     const updatedProject = await updateProjectService(

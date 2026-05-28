@@ -11,28 +11,24 @@ import { findUserById } from "../repositories/users.repository.js";
 
 import { createTaskSchema, updateTaskSchema } from "../schemas/tasks.schema.js";
 
+import { AppError } from "../utils/AppError.js";
+
 /* GET TASKS */
 export const getTasksService = async (userId, projectId) => {
   if (!userId) {
-    const error = new Error("Unauthorized");
-    error.statusCode = 401;
-    throw error;
+    throw new AppError("Unauthorized", 401);
   }
 
   const user = await findUserById(userId);
 
   if (!user) {
-    const error = new Error("User not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("User not found", 404);
   }
 
   const project = await findProjectByIdRepository({ userId, projectId });
 
   if (!project) {
-    const error = new Error("Project not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("Project not found", 404);
   }
 
   const projectTasks = await findTasksRepository({ userId, projectId });
@@ -45,32 +41,23 @@ export const createTaskService = async (userId, projectId, data) => {
   const validation = createTaskSchema.safeParse(data);
 
   if (!validation.success) {
-    const error = new Error("Validation error");
-    error.statusCode = 400;
-    error.errors = validation.error.flatten();
-    throw error;
+    throw new AppError("Validation error", 400, validation.error.flatten());
   }
 
   if (!userId) {
-    const error = new Error("Unauthorized");
-    error.statusCode = 401;
-    throw error;
+    throw new AppError("Unauthorized", 401);
   }
 
   const user = await findUserById(userId);
 
   if (!user) {
-    const error = new Error("User not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("User not found", 404);
   }
 
   const project = await findProjectByIdRepository({ userId, projectId });
 
   if (!project) {
-    const error = new Error("Project not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("Project not found", 404);
   }
 
   const task = await createTaskRepository({ projectId, ...validation.data });
@@ -81,33 +68,25 @@ export const createTaskService = async (userId, projectId, data) => {
 /* GET TASK */
 export const getTaskService = async (userId, projectId, taskId) => {
   if (!userId) {
-    const error = new Error("Unauthorized");
-    error.statusCode = 401;
-    throw error;
+    throw new AppError("Unauthorized", 401);
   }
 
   const user = await findUserById(userId);
 
   if (!user) {
-    const error = new Error("User not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("User not found", 404);
   }
 
   const project = await findProjectByIdRepository({ userId, projectId });
 
   if (!project) {
-    const error = new Error("Project not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("Project not found", 404);
   }
 
   const task = await findTaskRepository({ projectId, taskId });
 
   if (!task) {
-    const error = new Error("Task not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("Task not found", 404);
   }
 
   return task;
@@ -118,32 +97,24 @@ export const updateTaskService = async (userId, projectId, taskId, data) => {
   const validation = updateTaskSchema.safeParse(data);
 
   if (!validation.success) {
-    const error = new Error("Validation error");
-    error.statusCode = 400;
-    error.errors = validation.error.flatten();
-    throw error;
+    throw new AppError("Validation error", 400, validation.error.flatten());
   }
 
   if (Object.keys(validation.data).length === 0) {
-  const error = new Error("No fields to update");
-  error.statusCode = 400;
-  throw error;
-}
+    throw new AppError("No fields to update", 400);
+  }
 
   const user = await findUserById(userId);
 
   if (!user) {
-    const error = new Error("User not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError('User not found',404)
   }
 
   const project = await findProjectByIdRepository({ userId, projectId });
 
   if (!project) {
-    const error = new Error("Project not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("Project not found", 404);
+
   }
 
   const updatedTask = await updateTaskRepository({
@@ -153,9 +124,8 @@ export const updateTaskService = async (userId, projectId, taskId, data) => {
   });
 
   if (!updatedTask) {
-    const error = new Error("Task not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("Task not found", 404);
+
   }
 
   return updatedTask;
@@ -164,33 +134,27 @@ export const updateTaskService = async (userId, projectId, taskId, data) => {
 /* DELETE TASK */
 export const deleteTaskService = async (userId, projectId, taskId) => {
   if (!userId) {
-    const error = new Error("Unauthorized");
-    error.statusCode = 401;
-    throw error;
+    throw new AppError('Unauthorized',401)
   }
 
   const user = await findUserById(userId);
 
   if (!user) {
-    const error = new Error("User not found");
-    error.statusCode = 404;
-    throw error;
+   throw new AppError('User not found',404)
   }
 
   const project = await findProjectByIdRepository({ userId, projectId });
 
   if (!project) {
-    const error = new Error("Project not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("Project not found", 404);
+
   }
 
   const deletedTask = await deleteTaskRepository({ projectId, taskId });
 
   if (!deletedTask) {
-    const error = new Error("Task not found");
-    error.statusCode = 404;
-    throw error;
+    throw new AppError("Task not found", 404);
+
   }
 
   return deletedTask;
