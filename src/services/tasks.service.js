@@ -5,6 +5,7 @@ import {
   findTaskRepository,
   findTasksRepository,
   updateTaskRepository,
+  deleteTaskRepository,
 } from "../repositories/tasks.repository.js";
 import { findUserById } from "../repositories/users.repository.js";
 
@@ -123,6 +124,12 @@ export const updateTaskService = async (userId, projectId, taskId, data) => {
     throw error;
   }
 
+  if (Object.keys(validation.data).length === 0) {
+  const error = new Error("No fields to update");
+  error.statusCode = 400;
+  throw error;
+}
+
   const user = await findUserById(userId);
 
   if (!user) {
@@ -152,4 +159,39 @@ export const updateTaskService = async (userId, projectId, taskId, data) => {
   }
 
   return updatedTask;
+};
+
+/* DELETE TASK */
+export const deleteTaskService = async (userId, projectId, taskId) => {
+  if (!userId) {
+    const error = new Error("Unauthorized");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const user = await findUserById(userId);
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const project = await findProjectByIdRepository({ userId, projectId });
+
+  if (!project) {
+    const error = new Error("Project not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const deletedTask = await deleteTaskRepository({ projectId, taskId });
+
+  if (!deletedTask) {
+    const error = new Error("Task not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return deletedTask;
 };

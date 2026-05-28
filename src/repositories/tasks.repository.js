@@ -78,13 +78,28 @@ export const updateTaskRepository = async ({ projectId, taskId, data }) => {
 
   const result = await pool.query(
     `
-    UPDATE tasks
-    SET ${fields.join(", ")}
-    WHERE id = $${taskIdIndex}
-    AND project_id = $${projectIdIndex}
+  UPDATE tasks
+  SET ${fields.join(", ")}
+  WHERE id = $${taskIdIndex}
+  AND project_id = $${projectIdIndex}
+  RETURNING *
+  `,
+    values,
+  );
+
+  return result.rows[0];
+};
+
+/* DELETE TASK */
+export const deleteTaskRepository = async ({ projectId, taskId }) => {
+  const result = await pool.query(
+    `
+    DELETE FROM tasks
+    WHERE project_id = $1
+    AND id = $2
     RETURNING *
     `,
-    values,
+    [projectId, taskId],
   );
 
   return result.rows[0];
