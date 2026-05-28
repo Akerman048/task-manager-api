@@ -52,3 +52,40 @@ export const findTaskRepository = async ({ projectId, taskId }) => {
 
   return result.rows[0];
 };
+
+/* UPDATE TASK */
+export const updateTaskRepository = async ({ projectId, taskId, data }) => {
+  const allowedFields = ["title", "description", "status", "due_date"];
+
+  const fields = [];
+  const values = [];
+
+  for (const key of allowedFields) {
+    if (data[key] !== undefined) {
+      fields.push(`${key} = $${values.length + 1}`);
+      values.push(data[key]);
+    }
+  }
+
+  if (values.length === 0) {
+    return null;
+  }
+
+  values.push(taskId, projectId);
+
+  const taskIdIndex = values.length - 1;
+  const projectIdIndex = values.length;
+
+  const result = await pool.query(
+    `
+    UPDATE tasks
+    SET ${fields.join(", ")}
+    WHERE id = $${taskIdIndex}
+    AND project_id = $${projectIdIndex}
+    RETURNING *
+    `,
+    values,
+  );
+
+  return result.rows[0];
+};

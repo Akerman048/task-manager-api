@@ -2,8 +2,10 @@ import {
   createTaskService,
   getTaskService,
   getTasksService,
+  updateTaskService,
 } from "../services/tasks.service.js";
 
+/* GET TASKS */
 export const getTasks = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -32,6 +34,7 @@ export const getTasks = async (req, res, next) => {
   }
 };
 
+/* CREATE TASK */
 export const createTask = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -60,6 +63,7 @@ export const createTask = async (req, res, next) => {
   }
 };
 
+/* GET TASK */
 export const getTask = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -92,6 +96,43 @@ export const getTask = async (req, res, next) => {
   }
 };
 
-export const updateTask = async (req, res, next) => {};
+/* UPDATE TASK */
+export const updateTask = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const projectId = req.params.projectId;
+    const taskId = req.params.taskId;
 
+    if (!userId) {
+      const error = new Error("Unauthorized");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    if (!projectId || Number.isNaN(Number(projectId))) {
+      const error = new Error("Invalid project id");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!taskId || Number.isNaN(Number(taskId))) {
+      const error = new Error("Invalid task id");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const updatedTask = await updateTaskService(
+      userId,
+      projectId,
+      taskId,
+      req.body,
+    );
+
+    res.status(200).json({ success: true, data: updatedTask });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/* DELETE TASK */
 export const deleteTask = async (req, res, next) => {};
