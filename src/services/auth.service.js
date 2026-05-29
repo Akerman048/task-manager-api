@@ -63,6 +63,12 @@ export const loginUserService = async (data) => {
     { expiresIn: "15m" },
   );
 
+  const refreshToken = jwt.sign(
+    { userId: user.id },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" },
+  );
+
   return {
     user: {
       id: user.id,
@@ -71,6 +77,7 @@ export const loginUserService = async (data) => {
       created_at: user.created_at,
     },
     accessToken,
+    refreshToken,
   };
 };
 
