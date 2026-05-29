@@ -1,7 +1,12 @@
 import { pool } from "../db/pool.js";
 
 /* FIND TASKS */
-export const findTasksRepository = async ({ userId, projectId }) => {
+export const findTasksRepository = async ({
+  userId,
+  projectId,
+  limit,
+  offset,
+}) => {
   const result = await pool.query(
     `
     SELECT tasks.* FROM tasks
@@ -10,11 +15,29 @@ export const findTasksRepository = async ({ userId, projectId }) => {
     WHERE tasks.project_id = $1
     AND projects.user_id = $2
     ORDER BY tasks.created_at DESC
+    LIMIT $3
+    OFFSET $4
     `,
-    [projectId, userId],
+    [projectId, userId, limit, offset],
   );
 
   return result.rows;
+};
+
+/* COUNT TASKS */
+export const countTasksRepository = async ({ userId, projectId }) => {
+  const result = await pool.query(
+    `
+    SELECT COUNT(*) AS count
+    FROM tasks
+    JOIN projects ON tasks.project_id = projects.id
+    WHERE tasks.project_id = $1
+    AND projects.user_id = $2
+    `,
+    [projectId, userId],
+  );
+  
+  return Number(result.rows[0].count)
 };
 
 /* CREATE TASK */

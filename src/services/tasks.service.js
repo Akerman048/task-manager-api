@@ -4,6 +4,7 @@ import {
   createTaskRepository,
   findTaskRepository,
   findTasksRepository,
+  countTasksRepository,
   updateTaskRepository,
   deleteTaskRepository,
 } from "../repositories/tasks.repository.js";
@@ -14,7 +15,7 @@ import { createTaskSchema, updateTaskSchema } from "../schemas/tasks.schema.js";
 import { AppError } from "../utils/AppError.js";
 
 /* GET TASKS */
-export const getTasksService = async (userId, projectId) => {
+export const getTasksService = async (userId, projectId, query) => {
   if (!userId) {
     throw new AppError("Unauthorized", 401);
   }
@@ -31,9 +32,31 @@ export const getTasksService = async (userId, projectId) => {
     throw new AppError("Project not found", 404);
   }
 
-  const projectTasks = await findTasksRepository({ userId, projectId });
+  const page = Math.max(Number(query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(query.limit) || 10, 1), 100);
+  const offset = (page - 1) * limit;
 
-  return projectTasks;
+  const projectTasks = await findTasksRepository({
+    userId,
+    projectId,
+    limit,
+    offset,
+  });
+
+  const total = await countTasksRepository({ userId, projectId });
+
+  return {
+    data: projectTasks,
+    pagination: {
+      page,
+      limit,
+      offset,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page * limit < total,
+      hasPrevPage: page > 1,
+    },
+  };
 };
 
 /* CREATE TASK */
@@ -107,14 +130,13 @@ export const updateTaskService = async (userId, projectId, taskId, data) => {
   const user = await findUserById(userId);
 
   if (!user) {
-    throw new AppError('User not found',404)
+    throw new AppError("User not found", 404);
   }
 
   const project = await findProjectByIdRepository({ userId, projectId });
 
   if (!project) {
     throw new AppError("Project not found", 404);
-
   }
 
   const updatedTask = await updateTaskRepository({
@@ -125,7 +147,6 @@ export const updateTaskService = async (userId, projectId, taskId, data) => {
 
   if (!updatedTask) {
     throw new AppError("Task not found", 404);
-
   }
 
   return updatedTask;
@@ -134,27 +155,25 @@ export const updateTaskService = async (userId, projectId, taskId, data) => {
 /* DELETE TASK */
 export const deleteTaskService = async (userId, projectId, taskId) => {
   if (!userId) {
-    throw new AppError('Unauthorized',401)
+    throw new AppError("Unauthorized", 401);
   }
 
   const user = await findUserById(userId);
 
   if (!user) {
-   throw new AppError('User not found',404)
+    throw new AppError("User not found", 404);
   }
 
   const project = await findProjectByIdRepository({ userId, projectId });
 
   if (!project) {
     throw new AppError("Project not found", 404);
-
   }
 
   const deletedTask = await deleteTaskRepository({ projectId, taskId });
 
   if (!deletedTask) {
     throw new AppError("Task not found", 404);
-
   }
 
   return deletedTask;

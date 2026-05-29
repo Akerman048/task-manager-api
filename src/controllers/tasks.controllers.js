@@ -21,11 +21,11 @@ export const getTasks = async (req, res, next) => {
       throw new AppError("Invalid project id", 400);
     }
 
-    const tasks = await getTasksService(userId, projectId);
+    const result = await getTasksService(userId, projectId, req.query);
 
     res.status(200).json({
       success: true,
-      data: tasks,
+      ...result,
     });
   } catch (error) {
     next(error);
