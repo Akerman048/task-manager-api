@@ -11,6 +11,7 @@ import {
 import { findUserById } from "../repositories/users.repository.js";
 
 import { createTaskSchema, updateTaskSchema } from "../schemas/tasks.schema.js";
+import { tasksQuerySchema } from "../schemas/tasksQuery.schema.js";
 
 import { AppError } from "../utils/AppError.js";
 
@@ -32,18 +33,36 @@ export const getTasksService = async (userId, projectId, query) => {
     throw new AppError("Project not found", 404);
   }
 
-  const page = Math.max(Number(query.page) || 1, 1);
-  const limit = Math.min(Math.max(Number(query.limit) || 10, 1), 100);
+  const validation = tasksQuerySchema.safeParse(query);
+
+  if (!validation.success) {
+    throw new AppError(
+      "Invalid query parameters",
+      400,
+      validation.error.flatten(),
+    );
+  }
+
+  const filters = validation.data;
+
+  const page = filters.page || 1;
+  const limit = Math.min(Math.max(filters.limit || 10, 1), 100);
   const offset = (page - 1) * limit;
 
   const projectTasks = await findTasksRepository({
     userId,
     projectId,
+    ...filters,
     limit,
     offset,
   });
 
-  const total = await countTasksRepository({ userId, projectId });
+  const total = await countTasksRepository({
+    userId,
+    projectId,
+    status: filters.status,
+    search: filters.search,
+  });
 
   return {
     data: projectTasks,

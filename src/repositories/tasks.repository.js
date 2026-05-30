@@ -4,40 +4,90 @@ import { pool } from "../db/pool.js";
 export const findTasksRepository = async ({
   userId,
   projectId,
+  status,
+  search,
+  sortBy,
+  order,
   limit,
   offset,
 }) => {
+  const values = [projectId, userId];
+
+  let where = `WHERE tasks.project_id = $1 AND projects.user_id = $2`;
+
+  if (status) {
+    values.push(status);
+    where += ` AND tasks.status = $${values.length}`;
+  }
+
+  if (search) {
+    values.push(`%${search}%`);
+    where += ` AND tasks.title ILIKE $${values.length}`;
+  }
+
+  const allowedSortBy = ["created_at", "due_date", "title", "status"];
+  const safeSortBy = allowedSortBy.includes(sortBy) ? sortBy : "created_at";
+
+  const allowedOrderBy = ["asc", "desc"];
+  const safeOrder = allowedOrderBy.includes(order) ? order : "desc";
+
+  values.push(limit);
+  const limitIndex = values.length;
+
+  values.push(offset);
+  const offsetIndex = values.length;
+
   const result = await pool.query(
     `
     SELECT tasks.* FROM tasks
     JOIN projects
     ON tasks.project_id = projects.id
-    WHERE tasks.project_id = $1
-    AND projects.user_id = $2
-    ORDER BY tasks.created_at DESC
-    LIMIT $3
-    OFFSET $4
+    ${where}
+    ORDER BY tasks.${safeSortBy} ${safeOrder}
+    LIMIT $${limitIndex}
+    OFFSET $${offsetIndex}
     `,
-    [projectId, userId, limit, offset],
+    values,
   );
 
   return result.rows;
 };
 
 /* COUNT TASKS */
-export const countTasksRepository = async ({ userId, projectId }) => {
+export const countTasksRepository = async ({
+  userId,
+  projectId,
+  status,
+  search,
+}) => {
+  const values = [projectId, userId];
+
+  let where = `
+  WHERE tasks.project_id = $1
+    AND projects.user_id = $2 
+  `;
+
+  if (status) {
+    values.push(status);
+    where += ` AND tasks.status = $${values.length}`;
+  }
+
+  if (search) {
+    values.push(`%${search}%`);
+    where += ` AND tasks.title ILIKE $${values.length}`;
+  }
+
   const result = await pool.query(
     `
-    SELECT COUNT(*) AS count
+    SELECT COUNT(*) AS total
     FROM tasks
     JOIN projects ON tasks.project_id = projects.id
-    WHERE tasks.project_id = $1
-    AND projects.user_id = $2
+    ${where}
     `,
-    [projectId, userId],
+    values,
   );
-  
-  return Number(result.rows[0].count)
+
+  return Number(result.rows[0].total);
 };
 
 /* CREATE TASK */
